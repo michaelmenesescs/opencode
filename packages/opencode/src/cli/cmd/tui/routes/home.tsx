@@ -115,11 +115,11 @@ export function Home() {
       <box flexGrow={1} paddingLeft={2} paddingRight={2}>
         <box flexShrink={0} paddingTop={1} paddingBottom={1}>
           <box flexDirection="row" gap={1}>
-            <text fg={agentColor()} bold>
-              {"\u276F"}
+            <text fg={agentColor()}>
+              <span style={{ bold: true }}>{"\u276F"}</span>
             </text>
-            <text fg={theme.text} bold>
-              OpenCode
+            <text fg={theme.text}>
+              <span style={{ bold: true }}>OpenCode</span>
             </text>
             <text fg={theme.textMuted}>
               v{Installation.VERSION}
