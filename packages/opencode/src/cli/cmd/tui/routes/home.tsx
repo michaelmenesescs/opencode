@@ -1,8 +1,6 @@
 import { Prompt, type PromptRef } from "@tui/component/prompt"
 import { createEffect, createMemo, Match, on, onMount, Show, Switch } from "solid-js"
 import { useTheme } from "@tui/context/theme"
-import { useKeybind } from "@tui/context/keybind"
-import { Logo } from "../component/logo"
 import { Tips } from "../component/tips"
 import { Locale } from "@/util/locale"
 import { useSync } from "../context/sync"
@@ -103,18 +101,64 @@ export function Home() {
   )
   const directory = useDirectory()
 
-  const keybind = useKeybind()
+  const projectName = createMemo(() => {
+    const dir = directory()
+    if (!dir) return ""
+    const parts = dir.split("/")
+    return parts[parts.length - 1] || dir
+  })
+
+  const agentColor = createMemo(() => local.agent.color(local.agent.current().name))
 
   return (
     <>
-      <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2}>
-        <box flexGrow={1} minHeight={0} />
-        <box height={4} minHeight={0} flexShrink={1} />
-        <box flexShrink={0}>
-          <Logo />
+      <box flexGrow={1} paddingLeft={2} paddingRight={2}>
+        <box flexShrink={0} paddingTop={1} paddingBottom={1}>
+          <box flexDirection="row" gap={1}>
+            <text fg={agentColor()} bold>
+              {"\u276F"}
+            </text>
+            <text fg={theme.text} bold>
+              OpenCode
+            </text>
+            <text fg={theme.textMuted}>
+              v{Installation.VERSION}
+            </text>
+          </box>
+          <box paddingTop={1}>
+            <text fg={theme.textMuted}>
+              Working in{" "}
+              <span style={{ fg: theme.text, bold: true }}>{projectName()}</span>
+            </text>
+          </box>
+          <box flexDirection="row" gap={1} paddingTop={0}>
+            <text fg={theme.textMuted}>
+              Model:{" "}
+              <span style={{ fg: theme.text }}>{local.model.parsed().model}</span>
+              <span style={{ fg: theme.textMuted }}> ({local.model.parsed().provider})</span>
+            </text>
+          </box>
+          <Show when={mcp()}>
+            <box flexDirection="row" gap={1}>
+              <text fg={theme.textMuted}>
+                <Switch>
+                  <Match when={mcpError()}>
+                    <span style={{ fg: theme.error }}>●</span>
+                  </Match>
+                  <Match when={true}>
+                    <span style={{ fg: connectedMcpCount() > 0 ? theme.success : theme.textMuted }}>●</span>
+                  </Match>
+                </Switch>
+                {" "}
+                {Locale.pluralize(connectedMcpCount(), "{} MCP server connected", "{} MCP servers connected")}
+              </text>
+            </box>
+          </Show>
         </box>
-        <box height={1} minHeight={0} flexShrink={1} />
-        <box width="100%" maxWidth={75} zIndex={1000} paddingTop={1} flexShrink={0}>
+
+        <box flexGrow={1} minHeight={0} />
+
+        <box width="100%" maxWidth={75} zIndex={1000} flexShrink={0}>
           <Prompt
             ref={(r) => {
               prompt = r
@@ -124,35 +168,31 @@ export function Home() {
             workspaceID={route.workspaceID}
           />
         </box>
-        <box height={4} minHeight={0} width="100%" maxWidth={75} alignItems="center" paddingTop={3} flexShrink={1}>
+        <box height={2} minHeight={0} width="100%" maxWidth={75} alignItems="center" paddingTop={1} flexShrink={1}>
           <Show when={showTips()}>
             <Tips />
           </Show>
         </box>
-        <box flexGrow={1} minHeight={0} />
         <Toast />
       </box>
-      <box paddingTop={1} paddingBottom={1} paddingLeft={2} paddingRight={2} flexDirection="row" flexShrink={0} gap={2}>
+      <box paddingBottom={1} paddingLeft={2} paddingRight={2} flexDirection="row" flexShrink={0} gap={2}>
         <text fg={theme.textMuted}>{directory()}</text>
-        <box gap={1} flexDirection="row" flexShrink={0}>
+        <box flexGrow={1} />
+        <box gap={2} flexDirection="row" flexShrink={0}>
           <Show when={mcp()}>
             <text fg={theme.text}>
               <Switch>
                 <Match when={mcpError()}>
-                  <span style={{ fg: theme.error }}>⊙ </span>
+                  <span style={{ fg: theme.error }}>⊙</span>
                 </Match>
                 <Match when={true}>
-                  <span style={{ fg: connectedMcpCount() > 0 ? theme.success : theme.textMuted }}>⊙ </span>
+                  <span style={{ fg: connectedMcpCount() > 0 ? theme.success : theme.textMuted }}>⊙</span>
                 </Match>
               </Switch>
-              {connectedMcpCount()} MCP
+              {" "}{connectedMcpCount()} MCP
             </text>
-            <text fg={theme.textMuted}>/status</text>
           </Show>
-        </box>
-        <box flexGrow={1} />
-        <box flexShrink={0}>
-          <text fg={theme.textMuted}>{Installation.VERSION}</text>
+          <text fg={theme.textMuted}>/help</text>
         </box>
       </box>
     </>
